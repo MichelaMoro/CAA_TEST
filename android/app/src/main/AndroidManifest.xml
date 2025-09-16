@@ -1,22 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.caa_test">
 
+    <!-- Permessi richiesti -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+
     <application
         android:label="caa_test"
         android:icon="@mipmap/ic_launcher">
 
+        <!-- MainActivity: Flutter la gestisce di default -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-
-            <meta-data
-                android:name="io.flutter.embedding.android.NormalTheme"
-                android:resource="@style/NormalTheme" />
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -24,14 +24,9 @@
             </intent-filter>
         </activity>
 
+        <!-- Flutter embedding 2 -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-
-    <!-- Permessi aggiornati -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
 </manifest>
