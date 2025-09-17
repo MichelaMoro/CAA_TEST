@@ -10,20 +10,20 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
 
     <application
-        //android:label="caa_test"
-        android:icon="@mipmap/ic_launcher">
+    <!-- android:label="caa_test" -->
+     android:icon="@mipmap/ic_launcher">
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
+     <activity
+         android:name=".MainActivity"
+         android:exported="true">
+         <intent-filter>
+             <action android:name="android.intent.action.MAIN"/>
+             <category android:name="android.intent.category.LAUNCHER"/>
+         </intent-filter>
+     </activity>
 
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
-    </application>
+     <meta-data
+         android:name="flutterEmbedding"
+         android:value="2" />
+ </application>
 </manifest>
