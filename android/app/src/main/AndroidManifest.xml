@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
 
     <application
-        android:label="caa_test"
+        //android:label="caa_test"
         android:icon="@mipmap/ic_launcher">
 
         <activity
