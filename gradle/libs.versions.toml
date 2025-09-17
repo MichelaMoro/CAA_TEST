@@ -7,7 +7,7 @@ jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = 
 
 [versions]
 
-agp = "8.11.2"
+agp = "8.13.0"
 ##⬆= "8.6.1"
 ##⬆= "8.7.0-alpha01"
 ##⬆= "8.7.0-alpha02"
