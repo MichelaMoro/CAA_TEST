@@ -51,7 +51,7 @@ dependencies:
   device_info_plus: ^9.0.0
   flutter_cache_manager: ^3.3.0
   cached_network_image: ^3.2.0
-
+  auto_size_text: ^3.0.0
 
 
 

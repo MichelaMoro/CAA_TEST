@@ -5,11 +5,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:path/path.dart' as path; // Alias per evitare conflitti con Flutter's 'Context'
+import 'package:path/path.dart' as path;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart'; // Import per getExternalStorageDirectory
+import 'package:path_provider/path_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'sticker_folder_view.dart';
@@ -24,9 +24,7 @@ class StickerPicker extends StatefulWidget {
 }
 
 class _StickerPickerState extends State<StickerPicker> {
-  // Mappa per le cartelle locali: String (nome cartella) -> FolderContent
   final Map<String, FolderContent> localFolders = {};
-  // Oggetto per la cartella sticker personali di Firebase
   FolderContent? firebaseUserFolder;
 
   final ScrollController _scrollController = ScrollController();
@@ -34,32 +32,23 @@ class _StickerPickerState extends State<StickerPicker> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Inizializza con un valore di fallback, verrà sovrascritto dopo il caricamento asincrono
   Directory baseStickersDirectory = Directory('/storage/emulated/0/Download/Stickers');
   bool isLoading = true;
 
-  // Ruolo / permessi
   bool _isTutor = false;
   bool _isBccUser = false;
-  String? _tutoreId; // se non tutor, contiene l'UID del tutor di riferimento
+  String? _tutoreId;
 
   @override
   void initState() {
     super.initState();
-    _initializeData(); // Chiamata unificata per l'inizializzazione
+    _initializeData();
   }
 
   Future<void> _initializeData() async {
-    // 1. Ottieni e imposta la directory base
     await _getAndSetBaseDirectory();
-
-    // 2. Richiedi i permessi
     await _requestPermissions();
-
-    // 3. Carica ruolo utente (da Firestore) e cartelle
     await _loadUserRoleAndFolders();
-
-    // 4. Aggiorna lo stato di caricamento
     setState(() => isLoading = false);
   }
 
@@ -69,7 +58,7 @@ class _StickerPickerState extends State<StickerPicker> {
       baseStickersDirectory = Directory('${appSpecificExternalDir.path}/Download/Stickers');
     } else {
       baseStickersDirectory = Directory('/storage/emulated/0/Download/Stickers');
-      print('WARNING: Could not get external storage directory, falling back to direct path. Permissions might be an issue.');
+      print('WARNING: Could not get external storage directory.');
     }
   }
 
@@ -86,13 +75,10 @@ class _StickerPickerState extends State<StickerPicker> {
     }
   }
 
-  /// Carica info ruolo (tutor / bcc) e poi le cartelle locali + firebase in base ai permessi/ruoli
   Future<void> _loadUserRoleAndFolders() async {
-    // Carica ruolo utente da Firestore
     final user = _auth.currentUser;
     if (user == null) {
-      // utente non loggato: carica folders locali come fallback
-      await _loadFolders(); // carica ma senza filtrare (fallback)
+      await _loadFolders();
       await _loadFirebaseUserFolder();
       return;
     }
@@ -101,16 +87,12 @@ class _StickerPickerState extends State<StickerPicker> {
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
       final data = userDoc.data() ?? {};
 
-      // Interpretazioni compatibili con il tuo schema:
-      // - data['Tutore'] === true  -> è tutor
-      // - data['Tutore'] === "<uid>" -> campo Tutore contiene uid del proprio tutor
-      // - inoltre campo BCC / bcc potrebbe indicare che è un bccUser
       dynamic tutField = data['Tutore'] ?? data['tutoreId'] ?? data['tutorId'];
       bool isTutorFlag = false;
       String? tutorIdFromField;
 
       if (tutField is bool) {
-        isTutorFlag = tutField == true;
+        isTutorFlag = tutField;
       } else if (tutField is String) {
         tutorIdFromField = tutField;
       }
@@ -124,18 +106,15 @@ class _StickerPickerState extends State<StickerPicker> {
       });
     } catch (e) {
       print('Errore nel caricamento del ruolo utente: $e');
-      // fallback: mantieni default (non tutor) e carica le cartelle locali
     }
 
-    // Ora carica cartelle secondo ruolo
     await _loadFolders();
     await _loadFirebaseUserFolder();
   }
 
-  // ----------------- LOAD FOLDERS (Locale) -----------------
   Future<void> _loadFolders() async {
     localFolders.clear();
-    firebaseUserFolder = null; // reset
+    firebaseUserFolder = null;
 
     if (!await baseStickersDirectory.exists()) {
       await baseStickersDirectory.create(recursive: true);
@@ -143,25 +122,17 @@ class _StickerPickerState extends State<StickerPicker> {
 
     final subDirs = baseStickersDirectory.listSync().whereType<Directory>().toList();
     final prefs = await SharedPreferences.getInstance();
-
-    // Nome della cartella personale locale da escludere
     final String excludedFolderName = 'Stickers personali';
 
-    // Prepara la mappa allowedFolders (se applicabile)
     Map<String, bool> allowedFoldersForMe = {};
-
     final currentUser = _auth.currentUser;
 
-    // Caso: utente è TUTORE -> vedrà tutte le cartelle locali (per poterle gestire)
     if (_isTutor) {
-      allowedFoldersForMe = {}; // vuota indica "mostra tutte" (salvo prefs)
+      allowedFoldersForMe = {};
     } else if (_isBccUser && (_tutoreId != null && _tutoreId!.isNotEmpty) && currentUser != null) {
-      // Caso: utente BCC -> prendi la mappa dal documento del suo tutore
       try {
         final tutorDoc = await _firestore.collection('users').doc(_tutoreId).get();
         final tutorData = tutorDoc.data() ?? {};
-
-        // Preferiamo la struttura per-utente 'visibleFoldersByUser'
         dynamic rawByUser = tutorData['visibleFoldersByUser'] ?? tutorData['visibleFoldersByUserMap'] ?? tutorData['visibleFolders'];
         if (rawByUser != null) {
           try {
@@ -171,7 +142,6 @@ class _StickerPickerState extends State<StickerPicker> {
               allowedFoldersForMe[k] = (v == true);
             });
           } catch (e) {
-            // se la struttura non è mappa di mappe, proviamo fallback a visibleFolders (global)
             try {
               final Map<String, dynamic> globalMap = Map<String, dynamic>.from(rawByUser);
               globalMap.forEach((k, v) {
@@ -183,41 +153,20 @@ class _StickerPickerState extends State<StickerPicker> {
           }
         }
       } catch (e) {
-        print('Errore durante il caricamento delle cartelle per il BCC user dal tutor: $e');
+        print('Errore caricamento cartelle BCC: $e');
         allowedFoldersForMe = {};
       }
-    } else {
-      // Non tutor e non-BCC: usa preferenze locali come fallback
-      // lasciamo allowedFoldersForMe vuota e useremo prefs per decidere
-      allowedFoldersForMe = {};
     }
 
-    // Ora itera sulle sottocartelle e applica il filtro
     for (final dir in subDirs) {
       final String currentFolderName = path.basename(dir.path);
-
-      if (currentFolderName == excludedFolderName) {
-        continue; // Salta la cartella locale "Stickers personali"
-      }
-
-      // Se sono BCC user e tutor ha definito esplicitamente le cartelle per me:
+      if (currentFolderName == excludedFolderName) continue;
       if (!_isTutor && _isBccUser && allowedFoldersForMe.isNotEmpty) {
-        // se tutor non ha abilitato questa cartella per me -> salto
         if (allowedFoldersForMe[currentFolderName] != true) continue;
       }
 
-      // Altrimenti (tutor o fallback) rispetta le preferenze locali (prefs)
       final isVisiblePref = prefs.getBool('visible_${dir.path}') ?? true;
-      if (!_isTutor && !_isBccUser) {
-        // utente normale senza tutor: mostra solo se pref true
-        if (!isVisiblePref) continue;
-      } else if (_isTutor) {
-        // tutor: mostra indipendentemente dalla pref per permettere gestione (ma puoi cambiare)
-        // se preferisci rispettare le pref anche per i tutor, abilita il controllo qui
-      } else if (_isBccUser && allowedFoldersForMe.isEmpty) {
-        // BCC user ma tutor non ha impostazioni: fallback alle prefs
-        if (!isVisiblePref) continue;
-      }
+      if (!_isTutor && !_isBccUser && !isVisiblePref) continue;
 
       final images = dir
           .listSync()
@@ -245,10 +194,8 @@ class _StickerPickerState extends State<StickerPicker> {
         iconPath = potentialIconPathJpeg;
       } else if (File(potentialIconPathWebp).existsSync()) {
         iconPath = potentialIconPathWebp;
-      } else {
-        if (images.isNotEmpty) {
-          iconPath = images.first;
-        }
+      } else if (images.isNotEmpty) {
+        iconPath = images.first;
       }
 
       if (images.isNotEmpty) {
@@ -262,7 +209,6 @@ class _StickerPickerState extends State<StickerPicker> {
     }
   }
 
-  // ----------------- LOAD FOLDERS (Firebase user personal) -----------------
   Future<void> _loadFirebaseUserFolder() async {
     try {
       final user = _auth.currentUser;
@@ -295,7 +241,7 @@ class _StickerPickerState extends State<StickerPicker> {
         firebaseUserFolder = null;
       }
     } catch (e) {
-      print('Errore nel caricamento degli sticker personali da Firebase: $e');
+      print('Errore caricamento sticker Firebase: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Errore nel caricamento degli sticker personali.")),
@@ -339,7 +285,6 @@ class _StickerPickerState extends State<StickerPicker> {
     }
   }
 
-  // Funzione per navigare alla vista della cartella
   void _openFolderView(FolderContent folder) {
     Navigator.push(
       context,
@@ -350,7 +295,6 @@ class _StickerPickerState extends State<StickerPicker> {
         ),
       ),
     ).then((_) {
-      // Ricarica le cartelle quando torni indietro dalla vista della cartella
       _loadFolders();
     });
   }
@@ -385,7 +329,6 @@ class _StickerPickerState extends State<StickerPicker> {
               controller: _scrollController,
               child: Column(
                 children: [
-                  // Sezione per le cartelle locali
                   if (localFolders.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -398,7 +341,7 @@ class _StickerPickerState extends State<StickerPicker> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3, // Mostra 3 colonne di cartelle
+                        crossAxisCount: 3,
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
                         childAspectRatio: 0.8,
@@ -411,8 +354,6 @@ class _StickerPickerState extends State<StickerPicker> {
                       },
                     ),
                   ],
-
-                  // Sezione per gli sticker personali su Firebase
                   if (firebaseUserFolder != null && firebaseUserFolder!.items.isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.all(8.0),
@@ -423,8 +364,6 @@ class _StickerPickerState extends State<StickerPicker> {
                     ),
                     _buildFolderTile(firebaseUserFolder!),
                   ],
-
-                  // Messaggio se non ci sono cartelle da mostrare
                   if (localFolders.isEmpty && (firebaseUserFolder == null || firebaseUserFolder!.items.isEmpty))
                     const Padding(
                       padding: EdgeInsets.all(20.0),
@@ -477,13 +416,16 @@ class _StickerPickerState extends State<StickerPicker> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                folder.name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  folder.name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
             const SizedBox(height: 5),
@@ -494,12 +436,11 @@ class _StickerPickerState extends State<StickerPicker> {
   }
 }
 
-// Classe di supporto per organizzare il contenuto delle cartelle
 class FolderContent {
   final String name;
-  final String? iconPath; // Può essere un percorso locale o un URL di Firebase
-  final List<String> items; // Lista di percorsi locali o URL di Firebase
-  final bool isLocal; // true se la cartella è locale, false se da Firebase
+  final String? iconPath;
+  final List<String> items;
+  final bool isLocal;
 
   FolderContent({
     required this.name,
