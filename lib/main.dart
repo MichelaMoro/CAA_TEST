@@ -7,20 +7,13 @@ import 'package:provider/provider.dart';
 import 'package:caa_test/pages/login_page.dart';
 import 'package:caa_test/pages/home_page.dart';
 import 'package:caa_test/pages/register_page.dart';
-import 'package:device_preview/device_preview.dart';
-import 'package:flutter/foundation.dart';
-
-void main() async {
+//import 'package:device_preview/device_preview.dart';
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  await Firebase.initializeApp(options:DefaultFirebaseOptions.currentPlatform);
   runApp(
-    DevicePreview(
-      enabled: !kReleaseMode, // 🔹 Attivo solo in debug
-      builder: (context) => ChangeNotifierProvider(
-        create: (context) => AuthService(),
-        child: const MyApp(),
-      ),
+    ChangeNotifierProvider(create: (context)=> AuthService(),
+      child: const MyApp(),
     ),
   );
 }
@@ -28,18 +21,16 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      useInheritedMediaQuery: true, // 🔹 Necessario per DevicePreview
-      locale: DevicePreview.locale(context),
-      builder: DevicePreview.appBuilder,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/', // 🔹 Pagina iniziale
+      initialRoute: '/', // La schermata iniziale sarà quella di login
       routes: {
-        '/': (context) => LoginPage(onTap: () {}),
-        '/home': (context) => const HomePage(),
-        '/register': (context) => const RegisterPage(),
+        '/': (context) => LoginPage(onTap: () {  },), // Pagina di login
+        '/home': (context) => HomePage(), // Pagina home
+        '/register': (context) => RegisterPage(), // Pagina di registrazione
       },
     );
   }
