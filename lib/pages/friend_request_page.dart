@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:device_preview/device_preview.dart';
 
 class FriendRequestsPage extends StatelessWidget {
   const FriendRequestsPage({Key? key}) : super(key: key);

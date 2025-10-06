@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+//import 'package:device_preview/device_preview.dart';
 class Message {
   final String senderId;
   final String senderEmail;

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+//import 'package:device_preview/device_preview.dart';
 
 class UserChatManagementPage extends StatefulWidget {
   final String receiverUserId; // UID dell'utente con BCC

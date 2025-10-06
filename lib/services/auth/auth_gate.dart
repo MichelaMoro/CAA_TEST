@@ -2,6 +2,7 @@ import 'package:caa_test/services/auth/login_or_register.dart';
 import 'package:caa_test/pages/home_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+//import 'package:device_preview/device_preview.dart';
 class AuthGate extends StatelessWidget{
   const AuthGate({super.key});
 

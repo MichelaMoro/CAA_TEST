@@ -9,6 +9,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+//import 'package:device_preview/device_preview.dart';
 
 class ChatPage extends StatefulWidget {
   final String receiverUserEmail;

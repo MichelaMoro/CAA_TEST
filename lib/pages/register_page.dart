@@ -6,6 +6,7 @@ import 'package:caa_test/Services/auth/auth_service.dart';
 import 'package:caa_test/components/my_button.dart';
 import 'package:caa_test/components/my_text_field.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
+//import 'package:device_preview/device_preview.dart';
 
 class RegisterPage extends StatefulWidget {
   final void Function()? onTap;

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:caa_test/pages/SearchPage.dart';
 import 'package:caa_test/pages/friend_request_page.dart';
-
+//import 'package:device_preview/device_preview.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {

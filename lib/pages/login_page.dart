@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+//import 'package:device_preview/device_preview.dart';
 import 'register_page.dart'; // Assicurati di importare la RegisterPage
 
 class LoginPage extends StatefulWidget {

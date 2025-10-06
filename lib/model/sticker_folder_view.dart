@@ -7,7 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:path/path.dart' as path; // Alias per evitare conflitti, anche se qui meno probabile
 
 import 'sticker_picker.dart';
-
+//import 'package:device_preview/device_preview.dart';
 
 
 class StickerFolderView extends StatelessWidget {

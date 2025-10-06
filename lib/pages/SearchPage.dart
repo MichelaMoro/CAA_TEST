@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'register_page.dart';
+//import 'package:device_preview/device_preview.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});

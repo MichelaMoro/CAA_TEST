@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:caa_test/pages/login_page.dart';
 import 'package:caa_test/pages/home_page.dart';
 import 'package:caa_test/pages/register_page.dart';
-
+//import 'package:device_preview/device_preview.dart';
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options:DefaultFirebaseOptions.currentPlatform);
